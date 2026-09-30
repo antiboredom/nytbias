@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { resolve } from "$app/paths";
 
   let allQuotes = $state([]);
 
@@ -44,7 +45,7 @@
   }
 
   onMount(async () => {
-    const response = await fetch("/quotes.json");
+    const response = await fetch(resolve("/quotes.json"));
     const data = await response.json();
     allQuotes = data;
     cats = Array.from(new Set(data.map((s) => s.af_cat))).sort();

@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { resolve } from "$app/paths";
 
   let violent_sentences = $state([]);
 
@@ -44,7 +45,7 @@
   }
 
   onMount(async () => {
-    const response = await fetch("/violent_sentences.json");
+    const response = await fetch(resolve("/violent_sentences.json"));
     const data = await response.json();
     violent_sentences = data;
     victs = Array.from(new Set(data.map((s) => s.victim))).sort();
