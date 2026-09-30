@@ -10,7 +10,7 @@
   let cat = $state(null);
 
   let start = $state(0);
-  let total = $state(100);
+  let total = $state(200);
   let end = $derived(start + total);
 
   // const searches = [
