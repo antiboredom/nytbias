@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { resolve } from "$app/paths";
+  import Pageinate from "$lib/pageinate.svelte";
 
   let violent_sentences = $state([]);
 
@@ -12,6 +13,9 @@
   let victs = $state([]);
 
   let act = $state(null);
+
+  let page = $state(1);
+  const perPage = 100;
 
   const searches = [
     {
@@ -40,8 +44,13 @@
     return toReturn.sort((a, b) => a.sentence.localeCompare(b.sentence));
   });
 
+  let paginated = $derived(
+    filtered.slice((page - 1) * perPage, page * perPage),
+  );
+
   function search() {
     actualQ = q;
+    page = 1;
   }
 
   onMount(async () => {
@@ -70,6 +79,7 @@
         <button type="submit">Search</button>
         <span> Total Results: {filtered.length}</span>
       </form>
+      <Pageinate bind:page totalItems={filtered.length} {perPage} />
 
       <div class="searches">
         {#each searches as searchItem}
@@ -85,7 +95,7 @@
         {/each}
       </div>
 
-      {#each filtered as sentence}
+      {#each paginated as sentence}
         <p>
           {sentence.sentence} <a href={sentence.url} target="_blank">↗</a>
           <!-- {sentence.passive_voice} / {sentence.act} -->

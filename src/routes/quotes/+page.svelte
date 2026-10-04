@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { resolve } from "$app/paths";
+  import Pageinate from "$lib/pageinate.svelte";
 
   let allQuotes = $state([]);
 
@@ -10,9 +11,8 @@
   let cats = $state([]);
   let cat = $state(null);
 
-  let start = $state(0);
-  let total = $state(200);
-  let end = $derived(start + total);
+  let page = $state(1);
+  const perPage = 100;
 
   // const searches = [
   //   {
@@ -24,7 +24,7 @@
   //   { q: "terror", label: "terror" },
   // ];
 
-  let filtered = $derived.by(() => {
+  let filteredAll = $derived.by(() => {
     let toReturn = [...allQuotes];
 
     if (actualQ && actualQ.trim() !== "") {
@@ -35,13 +35,16 @@
     if (cat) {
       toReturn = toReturn.filter((sentence) => sentence.af_cat === cat);
     }
-    // return toReturn;
-    toReturn = toReturn.sort((a, b) => a.q.localeCompare(b.q));
-    return toReturn.slice(start, end);
+    return toReturn.sort((a, b) => a.q.localeCompare(b.q));
   });
+
+  let filtered = $derived(
+    filteredAll.slice((page - 1) * perPage, page * perPage),
+  );
 
   function search() {
     actualQ = q;
+    page = 1;
   }
 
   onMount(async () => {
@@ -64,12 +67,18 @@
       onkeydown={(e) => e.key === "Enter" && search()}
     />
     <button onclick={search}>Search</button>
-    <p>Showing {filtered.length} of {allQuotes.length} quotes</p>
+    <p>Showing {filteredAll.length} of {allQuotes.length} quotes</p>
+    <Pageinate bind:page totalItems={filteredAll.length} {perPage} />
   </div>
 
   <div class="cats">
     {#each cats as c}
-      <button onclick={() => (cat = c)}>{c}</button>
+      <button
+        onclick={() => {
+          cat = c;
+          page = 1;
+        }}>{c}</button
+      >
     {/each}
   </div>
 
