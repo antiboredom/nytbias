@@ -53,6 +53,27 @@
     page = 1;
   }
 
+  function escapeHtml(str) {
+    return str.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+          c
+        ],
+    );
+  }
+
+  function highlight(text, query) {
+    const escaped = escapeHtml(text);
+    if (!query) return escaped;
+    try {
+      const regex = new RegExp(`(${query})`, "gi");
+      return escaped.replace(regex, "<mark>$1</mark>");
+    } catch {
+      return escaped;
+    }
+  }
+
   onMount(async () => {
     const response = await fetch(resolve("/violent_sentences.json"));
     const data = await response.json();
@@ -97,7 +118,10 @@
 
       {#each paginated as sentence}
         <p>
-          {sentence.sentence} <a href={sentence.url} target="_blank">↗</a>
+          {@html highlight(sentence.sentence, actualQ)} <a
+            href={sentence.url}
+            target="_blank">↗</a
+          >
           <!-- {sentence.passive_voice} / {sentence.act} -->
         </p>
       {/each}
@@ -145,5 +169,10 @@
     margin: 0.5rem 0;
     line-height: 1.5;
     border-bottom: 1px solid #ccc;
+  }
+
+  p :global(mark) {
+    background-color: #ffe066;
+    padding: 0 0.1em;
   }
 </style>

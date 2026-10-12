@@ -47,6 +47,27 @@
     page = 1;
   }
 
+  function escapeHtml(str) {
+    return str.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+          c
+        ],
+    );
+  }
+
+  function highlight(text, query) {
+    const escaped = escapeHtml(text);
+    if (!query || query.trim() === "") return escaped;
+    try {
+      const regex = new RegExp(`(${query})`, "gi");
+      return escaped.replace(regex, "<mark>$1</mark>");
+    } catch {
+      return escaped;
+    }
+  }
+
   onMount(async () => {
     const response = await fetch(resolve("/quotes.json"));
     const data = await response.json();
@@ -86,7 +107,9 @@
     {#each filtered as quote}
       <div class="quote">
         <div class="q">
-          {quote.q} <a href={quote.url} target="_blank">[link]</a>
+          {@html highlight(quote.q, actualQ)} <a href={quote.url} target="_blank"
+            >[link]</a
+          >
         </div>
         <div class="q">{quote.s}, {quote.af}, {quote.af_cat}</div>
         <!-- {#if quote.s} -->
@@ -102,5 +125,10 @@
 <style>
   .quote {
     margin-bottom: 1rem;
+  }
+
+  .q :global(mark) {
+    background-color: #ffe066;
+    padding: 0 0.1em;
   }
 </style>
