@@ -13,6 +13,8 @@
   let victs = $state([]);
 
   let act = $state(null);
+  let passiveVoice = $state("");
+  let sortBy = $state("date");
 
   let page = $state(1);
   const perPage = 100;
@@ -41,7 +43,18 @@
     if (act) {
       toReturn = toReturn.filter((sentence) => sentence.act === act);
     }
-    return toReturn.sort((a, b) => a.sentence.localeCompare(b.sentence));
+
+    if (passiveVoice !== "") {
+      const wantPassive = passiveVoice === "true";
+      toReturn = toReturn.filter(
+        (sentence) => sentence.passive_voice === wantPassive,
+      );
+    }
+
+    if (sortBy === "alphabetical") {
+      return toReturn.sort((a, b) => a.sentence.localeCompare(b.sentence));
+    }
+    return toReturn.sort((a, b) => a.date.localeCompare(b.date));
   });
 
   let paginated = $derived(
@@ -57,9 +70,13 @@
     return str.replace(
       /[&<>"']/g,
       (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-          c
-        ],
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
     );
   }
 
@@ -100,6 +117,26 @@
         <button type="submit">Search</button>
         <span> Total Results: {filtered.length}</span>
       </form>
+
+      <div class="controls">
+        <label>
+          Sort by:
+          <select bind:value={sortBy} onchange={() => (page = 1)}>
+            <option value="date">Date</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+        </label>
+
+        <label>
+          Passive voice:
+          <select bind:value={passiveVoice} onchange={() => (page = 1)}>
+            <option value="">All</option>
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </select>
+        </label>
+      </div>
+
       <Pageinate bind:page totalItems={filtered.length} {perPage} />
 
       <div class="searches">
@@ -118,10 +155,9 @@
 
       {#each paginated as sentence}
         <p>
-          {@html highlight(sentence.sentence, actualQ)} <a
-            href={sentence.url}
-            target="_blank">↗</a
-          >
+          {@html highlight(sentence.sentence, actualQ)}
+          <span class="date">{sentence.date}</span>
+          <a href={sentence.url} target="_blank">↗</a>
           <!-- {sentence.passive_voice} / {sentence.act} -->
         </p>
       {/each}
@@ -150,6 +186,17 @@
     flex: 1;
     padding: 0.5rem;
     font-size: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+  }
+
+  .controls select {
+    margin-left: 0.5rem;
   }
 
   button {
